@@ -1,0 +1,56 @@
+---
+- name: Configure Nexus Interfaces
+  hosts: cisco_9k
+  gather_facts: false
+
+  vars:
+    interfaces:
+      - name: Ethernet1/1
+        mode: layer3
+        enabled: true
+      - name: Ethernet1/2
+        mode: layer3
+        enabled: true
+    l3_interfaces:
+      - name: Ethernet1/1
+        ipv4:
+          - address: 192.168.14.4/24
+      - name: Ethernet1/2
+        ipv4:
+          - address: 192.168.34.4/24
+    ospf:
+      name: lab_instance
+    ospf_interfaces:
+      - area: 0
+        interface: Ethernet1/1
+        network: point-to-point
+      - area: 0
+        interface: Ethernet1/2
+        network: point-to-point
+
+  tasks:
+
+    - name: Configure Interfaces
+      nxos_interfaces:
+        config: "{{ interfaces }}"
+    - name: Configure L3 Interfaces
+      nxos_l3_interfaces:
+        config: "{{ l3_interfaces }}"
+
+    - name: Enable OSPF
+      nxos_feature:
+          feature: ospf
+          state: enabled
+
+    - name: Configure OSPF Process
+      nxos_ospf:
+        ospf: "{{ ospf.name }}"
+        state: present
+
+    - name: Configure OSPF Interfaces
+      nxos_interface_ospf:
+        area: "{{ item.area }}"
+        interface: "{{ item.interface }}"
+        network: "{{ item.network }}"
+        ospf: "{{ ospf.name }}"
+      loop: "{{ ospf_interfaces }}"

@@ -1,0 +1,26 @@
+---
+- name: Configure Nexus Interfaces for Survey
+  hosts: cisco_9k
+  gather_facts: true
+
+  tasks:
+
+    - name: Configure Physical Interface
+      nxos_interfaces:
+        state: "{{ desired_state | default(omit) }}"
+        config:
+          - name: "{{ name }}"
+            description: "{{ description }}"
+            mode: "layer2"
+            enabled: "{{ enabled }}"
+            mtu: "{{ mtu | default(omit) }}"
+            speed: "{{ speed | default(omit) }}"
+            duplex: "{{ duplex | default(omit) }}"
+
+    - name: Configure Layer 2 Interface
+      nxos_l2_interfaces:
+        state: "{{ desired_state | default(omit) }}"
+        config:
+          - name: "{{ name }}"
+            access:
+              vlan: "{{ vlan_id }}"
